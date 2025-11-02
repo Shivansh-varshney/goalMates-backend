@@ -9,3 +9,8 @@ python manage.py migrate --noinput
 
 # Create superuser if it doesn't exist
 python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(email='${DJANGO_SUPERUSER_EMAIL}').exists() or User.objects.create_superuser('${DJANGO_SUPERUSER_USERNAME}', '${DJANGO_SUPERUSER_EMAIL}', '${DJANGO_SUPERUSER_PASSWORD}')"
+
+# Fill initial data (only if enabled via environment variable)
+if [ "$FILL_DEMO_DATA" = "true" ]; then
+    python manage.py fill-data
+fi
