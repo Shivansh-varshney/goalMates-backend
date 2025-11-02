@@ -1,0 +1,87 @@
+version: 2
+services:
+  # Web Service (Django + Channels)
+  - type: web
+    name: mirrorgoal-web
+    runtime: python
+    plan: free
+    buildCommand: "cd mirrorGoal && pip install -r requirements.txt && python manage.py collectstatic --no-input --clear && python manage.py migrate --noinput"
+    startCommand: "cd mirrorGoal && daphne -b 0.0.0.0 -p $PORT mirrorGoal.asgi:application"
+    healthCheckPath: /admin/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: False
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: mirrorgoal-db
+          property: database
+      - key: SQL_USER
+        fromDatabase:
+          name: mirrorgoal-db
+          property: user
+      - key: SQL_PASSWORD
+        fromDatabase:
+          name: mirrorgoal-db
+          property: password
+      - key: HOST
+        fromDatabase:
+          name: mirrorgoal-db
+          property: host
+      - key: PORT
+        fromDatabase:
+          name: mirrorgoal-db
+          property: port
+      - key: REDIS_HOST
+        fromService:
+          name: mirrorgoal-redis
+          type: redis
+          property: connectionString
+      - key: EMAIL_HOST
+        value: smtp-relay.brevo.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        value: mirrorGoal <shivanshvarshney45@gmail.com>
+
+  # Celery Worker
+  - type: worker
+    name: mirrorgoal-worker
+    runtime: python
+    plan: free
+    buildCommand: "cd mirrorGoal && pip install -r requirements.txt"
+    startCommand: "cd mirrorGoal && celery -A mirrorGoal worker --loglevel=info"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - fromGroup: mirrorgoal-web
+
+  # Celery Beat Scheduler
+  - type: worker
+    name: mirrorgoal-beat
+    runtime: python
+    plan: free
+    buildCommand: "cd mirrorGoal && pip install -r requirements.txt"
+    startCommand: "cd mirrorGoal && celery -A mirrorGoal beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - fromGroup: mirrorgoal-web
+
+databases:
+  # PostgreSQL Database (Free tier - 90 days, then renew)
+  - name: mirrorgoal-db
+    plan: free
+    databaseName: mirrorgoal
+    user: mirrorgoal
+
+# Redis (using external free Redis - Upstash or Redis Cloud)
+# Note: Render's managed Redis is paid only
+# You'll need to use external Redis service
