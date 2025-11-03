@@ -77,8 +77,8 @@ DATABASES = {
         'NAME': config('DATABASE_NAME'),
         'USER': config('SQL_USER'),
         'PASSWORD': config('SQL_PASSWORD'),
-        'HOST': config('HOST'),
-        'PORT': config('PORT')
+        'HOST': config('SQL_HOST'),
+        'PORT': config('SQL_PORT')
     }
 }
 
