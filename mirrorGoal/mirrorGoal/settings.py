@@ -186,6 +186,16 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF settings for deployment
+CSRF_TRUSTED_ORIGINS = [
+    "https://goalmates-backend.onrender.com",
+    "http://localhost:8080"
+]
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+
 # caching
 CACHES = {
     'default':{
